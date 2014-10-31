@@ -17,8 +17,8 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
-        <activity android:name=".StockInfoActivity">
-
+        <activity android:name="com.cn.StockQuote.StockInfoActivity"
+            android:label="@string/title_activity_stock_info" >
         </activity>
     </application>
 </manifest>

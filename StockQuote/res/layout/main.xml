@@ -1,7 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <TableLayout xmlns:android="http://schemas.android.com/apk/res/android"
-             android:layout_width="fill_parent"
-              android:layout_height="fill_parent"
+             android:layout_width="match_parent"
+
+              android:layout_height="match_parent"
+              android:stretchColumns="yes"
+
         >
 
     <TableRow
@@ -53,15 +56,17 @@
             android:id="@+id/tableRow3"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:background="#ff8aa0ff"
             android:layout_weight="1">
-        <ScrollView
-                android:layout_width="0dp "
-                android:layout_height="0dp"
-                android:layout_span="5"
-                android:padding="100dp"
-                android:id="@+id/stockScrollView"
+            <ScrollView
+                    android:id="@+id/stockScrollView"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_span="2"
+                    android:padding="5dp"
                 >
             <TableLayout
+                    android:id="@+id/stockTableScrollView"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:padding="5dp"
@@ -83,7 +88,7 @@
                 android:text="@string/delete_all_symbols"
                 android:id="@+id/deleteStockButton"
                 android:layout_column="0"
-                android:layout_span="3"
+                android:layout_span="2"
                 android:layout_weight="1"/>
 
     </TableRow>

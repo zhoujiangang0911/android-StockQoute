@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.widget.TextView;
 import org.apache.http.HttpResponse;
+import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.w3c.dom.Element;
@@ -19,6 +20,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URI;
+import java.net.URISyntaxException;
 
 /**
  * Created by 建刚 on 2014/10/27.
@@ -36,15 +38,15 @@ public class StockInfoActivity extends Activity {
     TextView changeTextView;
     TextView dailyTextView;
 
-    static final String KEY_ITEM = "quote";
+    static final String KEY_ITEM = "quote"; // parent node
     static final String KEY_NAME = "Name";
     static final String KEY_YEAR_LOW = "YearLow";
     static final String KEY_YEAR_HIGH = "YearHigh";
     static final String KEY_DAYS_LOW = "DaysLow";
     static final String KEY_DAYS_HIGH = "DaysHigh";
-    static final String KEY_LAST_TRADE_PRICE = "LastTradePrice";
+    static final String KEY_LAST_TRADE_PRICE = "LastTradePriceOnly";
     static final String KEY_CHANGE = "Change";
-    static final String KEY_DAS_RANGE = "DaysRange";
+    static final String KEY_DAYS_RANGE = "DaysRange";
 
 
     String name = "";
@@ -52,17 +54,19 @@ public class StockInfoActivity extends Activity {
     String yearHigh = "";
     String daysLow = "";
     String daysHigh = "";
-    String lastTradePrice = "";
+    String lastTradePriceOnly = "";
     String change = "";
     String daysRange = "";
 
 
-    String yahooURLFist = "asdfa";
-    String yahooURLSecond = "adfdf";
+    String yahooURLFist ="http://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20yahoo.finance.quote%20where%20symbol%20in%20(%22";
+    String yahooURLSecond ="%22)&env=store%3A%2F%2Fdatatables.org%2Falltableswithkeys";
 
     String[][] xmlPullParserArray = {{"AverageDailyVolume", "0"}, {"Change", "0"}, {"DaysLow", "0"},
-            {"DaysHigh", "0"}, {"YearLow", "0"}, {"YearHigh", "0"}, {"MarketCapitalization", "0"},
-            {"LastTradePriceOnly", "0"}, {"DaysRange", "0"}, {"Name", "0"}, {"Symbol", "0"}, {"Volume", "0"}, {"StockExchange", "0"}};
+            {"DaysHigh", "0"}, {"YearLow", "0"}, {"YearHigh", "0"},
+            {"MarketCapitalization", "0"}, {"LastTradePriceOnly", "0"}, {"DaysRange", "0"},
+            {"Name", "0"}, {"Symbol", "0"}, {"Volume", "0"},
+            {"StockExchange", "0"}};
 
     int parserArrayIncrement = 0;
 
@@ -88,14 +92,15 @@ public class StockInfoActivity extends Activity {
 
         final String yalURL = yahooURLFist + stockSymbol + yahooURLSecond;
 
-        new MyAssyncTask().execute();
+        new MyAssyncTask().execute(yalURL);
 
     }
 
 
-    private class MyAssyncTask extends AsyncTask<String, String, String> {
+    private class MyAssyncTask extends AsyncTask<String ,String ,String> {
 
-        protected String doInBackground(String... args) {
+
+        protected String doInBackground(String[] args) {
 
 //            try {
 //                URL url = new URL(args[0]);
@@ -155,6 +160,7 @@ public class StockInfoActivity extends Activity {
 
 
             try {
+                Log.d("test","In XmlPullParser");
                 XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
 
                 factory.setNamespaceAware(true);
@@ -197,26 +203,30 @@ public class StockInfoActivity extends Activity {
         }
 
 
-        public InputStream getURLData(String url) throws Exception {
-            DefaultHttpClient client = new DefaultHttpClient();
+        public InputStream getURLData(String url) throws URISyntaxException,ClientProtocolException, IOException {
+            DefaultHttpClient client =new DefaultHttpClient();
+
             HttpGet method = new HttpGet(new URI(url));
 
             HttpResponse res = client.execute(method);
-
+              System.out.println(res.getEntity().getContent());
             return res.getEntity().getContent();
 
 
         }
 
         public final void beginDocument(XmlPullParser parser, String fistElementName) throws XmlPullParserException, IOException {
-                int type=0;
+                int type;
 //            while (){
 //                    ;
 //            }
 
-            if (type != parser.START_TAG){
-                throw new XmlPullParserException("no START tAG FOUND");
-
+            while ((type=parser.next()) != parser.START_TAG
+                    && type != parser.END_DOCUMENT) {
+                ;
+            }
+            if (type != parser.START_TAG) {
+                throw new XmlPullParserException("No start tag found");
             }
             if (!parser.getName().equals(fistElementName)){
                 throw new XmlPullParserException("UnException Start Tag Found"+parser.getName()+",expected"+fistElementName);
@@ -225,11 +235,16 @@ public class StockInfoActivity extends Activity {
         }
 
         public final void nextElement(XmlPullParser parser)throws  XmlPullParserException, IOException {
-//            boolean type;
-//               while ((type=parser.next()!=parser.START_TAG&&type!= XmlPullParser.END_DOCUMENT){
-//                ;
-//            }
 
+            int type;
+
+            // Cycles through elements in the XML document while
+            // neither a start or end tag are found
+
+            while ((type=parser.next()) != parser.START_TAG
+                    && type != parser.END_DOCUMENT) {
+                ;
+            }
 
         }
 
@@ -249,20 +264,20 @@ public class StockInfoActivity extends Activity {
         }
 
 
-        private StockInfo getStockInformation(Element element) {
-            String stockName = getTextValue(element, "Name");
-            String YearLow = getTextValue(element, "YearLow");
-            String YearHigh = getTextValue(element, "YearHigh");
-            String DaysLow = getTextValue(element, "DaysLow");
-            String DaysHigh = getTextValue(element, "DaysHigh");
-            String LastTradePrice = getTextValue(element, "LastTradePrice");
-            String Change = getTextValue(element, "Change");
-            String DaysRange = getTextValue(element, "DaysRange");
-
-            StockInfo theStock = new StockInfo(DaysLow, DaysHigh, YearLow, YearHigh, stockName, LastTradePrice, Change, DaysRange);
-
-            return theStock;
-        }
+//        private StockInfo getStockInformation(Element element) {
+//            String stockName = getTextValue(element, "Name");
+//            String YearLow = getTextValue(element, "YearLow");
+//            String YearHigh = getTextValue(element, "YearHigh");
+//            String DaysLow = getTextValue(element, "DaysLow");
+//            String DaysHigh = getTextValue(element, "DaysHigh");
+//            String LastTradePrice = getTextValue(element, "LastTradePrice");
+//            String Change = getTextValue(element, "Change");
+//            String DaysRange = getTextValue(element, "DaysRange");
+//
+//            StockInfo theStock = new StockInfo(DaysLow, DaysHigh, YearLow, YearHigh, stockName, LastTradePrice, Change, DaysRange);
+//
+//            return theStock;
+//        }
 
         private String getTextValue(Element entry, String tagName) {
             String tagValueToReturn = null;
